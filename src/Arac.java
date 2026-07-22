@@ -9,11 +9,11 @@ public class Arac{
             this.plaka=plaka;
             this.saseNo=saseNo;
         }
-    public String kaydet() {
+    /*public String kaydet() {
         return plaka + "|" + marka + "|" + model + "|" + saseNo;
     }
     public String getPlaka() { return plaka; }
     public String getMarka() { return marka; }
     public String getModel() { return model; }
-    public String getSaseNo(){ return saseNo; }
+    public String getSaseNo(){ return saseNo; }*/
 }

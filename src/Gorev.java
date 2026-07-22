@@ -14,7 +14,7 @@ public class Gorev{
         this.rapor = aciklama;
         this.tarih = tarih;
     }
-    public String gkaydet() {
+    /*public String gkaydet() {
         return aracPlakasi + "|" + soforAdi + "|" + il + "|" + ilce + "|" + rapor + "|" + tarih;
     }
     public String getTarih() { return tarih; }
@@ -22,5 +22,5 @@ public class Gorev{
     public String  getSoforAdi() { return soforAdi; }
     public String getRapor(){ return rapor; }
     public String  getIl(){ return il; }
-    public String getIlce() { return ilce; }
+    public String getIlce() { return ilce; }*/
 }

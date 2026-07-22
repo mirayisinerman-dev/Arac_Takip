@@ -4,33 +4,33 @@ import java.awt.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-
+//entera basıldığında kaydet
+//tarih girerken otomatik / atsın
+//onaylama kutularını sil
+//araç plakasında ekstra elle girilebilecek bir alan
 public class Arayuz extends JFrame {
     private JTabbedPane sekme;
     private JPanel panelArac;
     private JPanel panelGorev;
     private JPanel panelRapor;
 
-    // Araç Yönetimi Bileşenleri
     private JTextField txtMarka, txtModel, txtPlaka, txtSaseNo;
     private JTable tabloArac;
     private DefaultTableModel modelArac;
     private JComboBox<String> cbAracPlaka;
 
-    // Görevlendirme Bileşenleri
     private JTextField txtSoforAdi, txtIl, txtIlce, txtRapor, txtTarih;
     private JTable tabloGorev;
     private DefaultTableModel modelGorev;
 
-    // Raporlar
     private JTable tabloRapor;
     private DefaultTableModel modelRapor;
     private boolean haftalikRaporGoster = false;
 
     public Arayuz() {
-        Veritabani.tablolariOlustur(); // Veritabanını hazırla
+        Veritabani.tablolariOlustur();
 
-        setTitle("Araç Takip ve Görevlendirme Sistemi (SQL Destekli)");
+        setTitle("Araç Takip ve Görevlendirme Sistemi");
         setSize(1000, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -63,22 +63,22 @@ public class Arayuz extends JFrame {
         panelArac = new JPanel(new BorderLayout(10, 10));
         panelArac.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JPanel pnlGirdi = new JPanel(new GridLayout(6, 2, 5, 5));
-        pnlGirdi.add(new JLabel("Marka:"));
+        JPanel btnGirdisi = new JPanel(new GridLayout(6, 2, 5, 5));
+        btnGirdisi.add(new JLabel("Marka:"));
         txtMarka = new JTextField();
-        pnlGirdi.add(txtMarka);
+        btnGirdisi.add(txtMarka);
 
-        pnlGirdi.add(new JLabel("Model:"));
+        btnGirdisi.add(new JLabel("Model:"));
         txtModel = new JTextField();
-        pnlGirdi.add(txtModel);
+        btnGirdisi.add(txtModel);
 
-        pnlGirdi.add(new JLabel("Plaka:"));
+        btnGirdisi.add(new JLabel("Plaka:"));
         txtPlaka = new JTextField();
-        pnlGirdi.add(txtPlaka);
+        btnGirdisi.add(txtPlaka);
 
-        pnlGirdi.add(new JLabel("Şase No:"));
+        btnGirdisi.add(new JLabel("Şase No:"));
         txtSaseNo = new JTextField();
-        pnlGirdi.add(txtSaseNo);
+        btnGirdisi.add(txtSaseNo);
 
         JButton btnKaydet = new JButton("Yeni Araç Kaydet");
         btnKaydet.addActionListener(e -> aracKaydet());
@@ -86,10 +86,10 @@ public class Arayuz extends JFrame {
         JButton btnGuncelle = new JButton("Seçileni Güncelle");
         btnGuncelle.addActionListener(e -> aracGuncelle());
 
-        pnlGirdi.add(btnGuncelle);
-        pnlGirdi.add(btnKaydet);
+        btnGirdisi.add(btnGuncelle);
+        btnGirdisi.add(btnKaydet);
 
-        panelArac.add(pnlGirdi, BorderLayout.NORTH);
+        panelArac.add(btnGirdisi, BorderLayout.NORTH);
 
         modelArac = new DefaultTableModel(new String[]{"Plaka", "Marka", "Model", "Şase No"}, 0) {
             @Override
@@ -104,20 +104,21 @@ public class Arayuz extends JFrame {
                 txtMarka.setText(modelArac.getValueAt(row, 1).toString());
                 txtModel.setText(modelArac.getValueAt(row, 2).toString());
                 txtSaseNo.setText(modelArac.getValueAt(row, 3).toString());
-                txtPlaka.setEnabled(false); // Güncelleme sırasında plaka değişimi engellenir (Primary Key)
+                txtPlaka.setEnabled(false);
             }
         });
 
         panelArac.add(new JScrollPane(tabloArac), BorderLayout.CENTER);
 
         JPanel pnlAlt = new JPanel(new FlowLayout());
-        JButton btnTemizle = new JButton("Formu Temizle");
-        btnTemizle.addActionListener(e -> alanlariTemizleArac());
         JButton btnSil = new JButton("Seçili Aracı Sil");
         btnSil.addActionListener(e -> aracSil());
         
-        pnlAlt.add(btnTemizle);
+        JButton btnServis = new JButton("Servis ve Giderleri Yönet");
+        btnServis.addActionListener(e -> servisEkraniniAc());
+
         pnlAlt.add(btnSil);
+        pnlAlt.add(btnServis);
         panelArac.add(pnlAlt, BorderLayout.SOUTH);
     }
 
@@ -125,42 +126,42 @@ public class Arayuz extends JFrame {
         panelGorev = new JPanel(new BorderLayout(10, 10));
         panelGorev.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JPanel pnlGirdi = new JPanel(new GridLayout(8, 2, 5, 5));
+        JPanel Girdi = new JPanel(new GridLayout(8, 2, 5, 5));
         
-        pnlGirdi.add(new JLabel("Araç Plakası:"));
+        Girdi.add(new JLabel("Araç Plakası:"));
         cbAracPlaka = new JComboBox<>();
-        pnlGirdi.add(cbAracPlaka);
+        Girdi.add(cbAracPlaka);
 
-        pnlGirdi.add(new JLabel("Şoför Adı:"));
+        Girdi.add(new JLabel("Şoför Adı:"));
         txtSoforAdi = new JTextField();
-        pnlGirdi.add(txtSoforAdi);
+        Girdi.add(txtSoforAdi);
 
-        pnlGirdi.add(new JLabel("İl:"));
+        Girdi.add(new JLabel("İl:"));
         txtIl = new JTextField();
-        pnlGirdi.add(txtIl);
+        Girdi.add(txtIl);
 
-        pnlGirdi.add(new JLabel("İlçe:"));
+        Girdi.add(new JLabel("İlçe:"));
         txtIlce = new JTextField();
-        pnlGirdi.add(txtIlce);
+        Girdi.add(txtIlce);
 
-        pnlGirdi.add(new JLabel("Açıklama (Rapor):"));
+        Girdi.add(new JLabel("Açıklama (Rapor):"));
         txtRapor = new JTextField();
-        pnlGirdi.add(txtRapor);
+        Girdi.add(txtRapor);
 
-        pnlGirdi.add(new JLabel("Tarih (GG/AA/YYYY):"));
+        Girdi.add(new JLabel("Tarih (GG/AA/YYYY):"));
         txtTarih = new JTextField();
-        pnlGirdi.add(txtTarih);
+        Girdi.add(txtTarih);
 
-        JButton btnKaydet = new JButton("Yeni Görev Kaydet");
-        btnKaydet.addActionListener(e -> gorevKaydet());
+        JButton Kaydet = new JButton("Yeni Görev Kaydet");
+        Kaydet.addActionListener(e -> gorevKaydet());
         
         JButton btnGuncelle = new JButton("Seçileni Güncelle");
         btnGuncelle.addActionListener(e -> gorevGuncelle());
 
-        pnlGirdi.add(btnGuncelle);
-        pnlGirdi.add(btnKaydet);
+        Girdi.add(btnGuncelle);
+        Girdi.add(Kaydet);
 
-        panelGorev.add(pnlGirdi, BorderLayout.NORTH);
+        panelGorev.add(Girdi, BorderLayout.NORTH);
 
         modelGorev = new DefaultTableModel(new String[]{"ID", "Plaka", "Şoför", "İl", "İlçe", "Açıklama", "Tarih"}, 0) {
             @Override
@@ -183,12 +184,9 @@ public class Arayuz extends JFrame {
         panelGorev.add(new JScrollPane(tabloGorev), BorderLayout.CENTER);
 
         JPanel pnlAlt = new JPanel(new FlowLayout());
-        JButton btnTemizle = new JButton("Formu Temizle");
-        btnTemizle.addActionListener(e -> alanlariTemizleGorev());
         JButton btnSil = new JButton("Seçili Görevi Sil");
         btnSil.addActionListener(e -> gorevSil());
-        
-        pnlAlt.add(btnTemizle);
+
         pnlAlt.add(btnSil);
         panelGorev.add(pnlAlt, BorderLayout.SOUTH);
     }
@@ -197,7 +195,7 @@ public class Arayuz extends JFrame {
         panelRapor = new JPanel(new BorderLayout(10, 10));
         panelRapor.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JLabel lblBaslik = new JLabel("Araç Durumları ve Görev Kayıtları (SQL Destekli)");
+        JLabel lblBaslik = new JLabel("Araç Durumları ve Görev Kayıtları");
         lblBaslik.setFont(new Font("Arial", Font.BOLD, 16));
         lblBaslik.setHorizontalAlignment(SwingConstants.CENTER);
         panelRapor.add(lblBaslik, BorderLayout.NORTH);
@@ -211,9 +209,8 @@ public class Arayuz extends JFrame {
         tabloRapor = new JTable(modelRapor);
         panelRapor.add(new JScrollPane(tabloRapor), BorderLayout.CENTER);
 
-        // Haftalık Rapor Butonları
         JPanel pnlFiltre = new JPanel(new FlowLayout());
-        JButton btnTumu = new JButton("Tüm Raporları Göster");
+        JButton btnTumu = new JButton("Tüm Görevleri Göster");
         JButton btnHaftalik = new JButton("Haftalık Rapor (Son 7 Gün)");
         
         btnTumu.addActionListener(e -> {
@@ -231,8 +228,6 @@ public class Arayuz extends JFrame {
         panelRapor.add(pnlFiltre, BorderLayout.SOUTH);
     }
 
-    // --- SQL ARAÇ İŞLEMLERİ ---
-    
     private void araclariYukle() {
         modelArac.setRowCount(0);
         cbAracPlaka.removeAllItems();
@@ -274,8 +269,7 @@ public class Arayuz extends JFrame {
             pstmt.setString(3, model);
             pstmt.setString(4, saseNo);
             pstmt.executeUpdate();
-            
-            JOptionPane.showMessageDialog(this, "Araç başarıyla kaydedildi.", "Bilgi", JOptionPane.INFORMATION_MESSAGE);
+
             araclariYukle();
             alanlariTemizleArac();
         } catch (SQLException e) {
@@ -312,7 +306,7 @@ public class Arayuz extends JFrame {
         int row = tabloArac.getSelectedRow();
         if (row == -1) return;
         
-        int onay = JOptionPane.showConfirmDialog(this, "Seçili aracı silmek istediğinize emin misiniz? (Bağlı görevler de silinebilir)", "Silme Onayı", JOptionPane.YES_NO_OPTION);
+        int onay = JOptionPane.showConfirmDialog(this, "Seçili aracı silmek istediğinize emin misiniz?" , "Silme Onayı", JOptionPane.YES_NO_OPTION);
         if (onay == JOptionPane.YES_OPTION) {
             String plaka = modelArac.getValueAt(row, 0).toString();
             String sql = "DELETE FROM Araclar WHERE plaka = ?";
@@ -336,8 +330,16 @@ public class Arayuz extends JFrame {
         }
     }
 
-    // --- SQL GÖREV İŞLEMLERİ ---
-    
+    private void servisEkraniniAc() {
+        int row = tabloArac.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Lütfen servis/gider kaydı girmek istediğiniz aracı tablodan seçin!", "Uyarı", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        String plaka = modelArac.getValueAt(row, 0).toString();
+        new ServisEkrani(this, plaka).setVisible(true);
+    }
+
     private void gorevleriYukle() {
         modelGorev.setRowCount(0);
         String sql = "SELECT * FROM Gorevler";
@@ -358,7 +360,7 @@ public class Arayuz extends JFrame {
 
     private void gorevKaydet() {
         if (cbAracPlaka.getSelectedItem() == null) {
-            JOptionPane.showMessageDialog(this, "Lütfen önce bir araç kaydedin veya seçin!", "Hata", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Lütfen önce bir araç kaydedin veya seçin,", "Hata", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
@@ -449,16 +451,13 @@ public class Arayuz extends JFrame {
             }
         }
     }
-
-    // --- RAPORLAR ---
-    
     private void raporlariYukle() {
         modelRapor.setRowCount(0);
 
         try (Connection conn = Veritabani.baglan();
              Statement stmt = conn.createStatement()) {
              
-             // Önce tüm araçları al
+
              ResultSet rsArac = stmt.executeQuery("SELECT * FROM Araclar");
              List<String[]> aracList = new ArrayList<>();
              while(rsArac.next()){
@@ -466,7 +465,6 @@ public class Arayuz extends JFrame {
              }
              rsArac.close();
 
-             // Her araç için görevlerini bul
              for (String[] arac : aracList) {
                  String plaka = arac[0];
                  PreparedStatement ps = conn.prepareStatement("SELECT * FROM Gorevler WHERE plaka = ?");
@@ -478,7 +476,7 @@ public class Arayuz extends JFrame {
                  while(rsGorev.next()){
                      String tarih = rsGorev.getString("tarih");
                      if (haftalikRaporGoster && !sonYediGunIcindemi(tarih)) {
-                         continue; // Filtre dışıysa atla
+                         continue;
                      }
                      gosterilecekGorevVar = true;
                      String yer = rsGorev.getString("il") + " / " + rsGorev.getString("ilce");
@@ -517,7 +515,7 @@ public class Arayuz extends JFrame {
         txtMarka.setText("");
         txtModel.setText("");
         txtPlaka.setText("");
-        txtPlaka.setEnabled(true); // Güncellemeden sonra tekrar aç
+        txtPlaka.setEnabled(true);
         txtSaseNo.setText("");
         tabloArac.clearSelection();
     }
