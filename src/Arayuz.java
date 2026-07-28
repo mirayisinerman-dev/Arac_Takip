@@ -313,7 +313,7 @@ public class Arayuz extends JFrame {
                  pnlAracItem.setBackground(new Color(245, 247, 250));
                  pnlAracItem.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
                  
-                 JLabel lblPlaka = new JLabel("🚘 " + plaka);
+                 JLabel lblPlaka = new JLabel(plaka);
                  lblPlaka.setFont(new Font("Segoe UI", Font.BOLD, 16));
                  lblPlaka.setForeground(new Color(30, 70, 140));
                  
