@@ -161,7 +161,15 @@ public class Arayuz extends JFrame {
         panelGorev = new JPanel(new BorderLayout(10, 10));
         panelGorev.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JPanel pnlGirdiAlanlari = new JPanel(new GridLayout(6, 2, 5, 5));
+        JPanel pnlSol = new JPanel(new BorderLayout(0, 15));
+        pnlSol.setPreferredSize(new Dimension(280, 0));
+        pnlSol.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createTitledBorder("Görev Kayıt / Düzenleme"),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+
+        // Sol paneldeki kutucuklar alt alta (Etiket üstte, kutu altta)
+        JPanel pnlGirdiAlanlari = new JPanel(new GridLayout(12, 1, 0, 5));
         
         pnlGirdiAlanlari.add(new JLabel("Araç Plakası:"));
         cbAracPlaka = new JComboBox<>();
@@ -212,23 +220,25 @@ public class Arayuz extends JFrame {
         JButton btnTemizle = new JButton("Formu Temizle");
         btnTemizle.addActionListener(e -> alanlariTemizleGorev());
 
-        JButton Kaydet = new JButton("Yeni Görev Kaydet");
-        Kaydet.addActionListener(e -> gorevKaydet());
+        JButton btnKaydet = new JButton("Yeni Görev Kaydet");
+        btnKaydet.addActionListener(e -> gorevKaydet());
         
         JButton btnGuncelle = new JButton("Seçileni Güncelle");
         btnGuncelle.addActionListener(e -> gorevGuncelle());
 
-        JPanel pnlButonlar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        pnlButonlar.setBorder(BorderFactory.createEmptyBorder(10, 0, 5, 0));
-        pnlButonlar.add(btnTemizle);
+        JPanel pnlButonlar = new JPanel(new GridLayout(3, 1, 0, 8));
+        pnlButonlar.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
+        pnlButonlar.add(btnKaydet);
         pnlButonlar.add(btnGuncelle);
-        pnlButonlar.add(Kaydet);
+        pnlButonlar.add(btnTemizle);
         
-        JPanel pnlKuzey = new JPanel(new BorderLayout());
-        pnlKuzey.add(pnlGirdiAlanlari, BorderLayout.CENTER);
-        pnlKuzey.add(pnlButonlar, BorderLayout.SOUTH);
+        JPanel pnlIcerik = new JPanel(new BorderLayout());
+        pnlIcerik.add(pnlGirdiAlanlari, BorderLayout.NORTH);
+        pnlIcerik.add(pnlButonlar, BorderLayout.CENTER);
 
-        panelGorev.add(pnlKuzey, BorderLayout.NORTH);
+        pnlSol.add(pnlIcerik, BorderLayout.NORTH);
+
+        panelGorev.add(pnlSol, BorderLayout.WEST);
 
         modelGorev = new DefaultTableModel(new String[]{"ID", "Plaka", "Şoför", "İl", "İlçe", "Açıklama", "Tarih"}, 0) {
             @Override
@@ -249,7 +259,9 @@ public class Arayuz extends JFrame {
             }
         });
 
-        panelGorev.add(new JScrollPane(tabloGorev), BorderLayout.CENTER);
+        JScrollPane scrollPaneGorev = new JScrollPane(tabloGorev);
+        scrollPaneGorev.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+        panelGorev.add(scrollPaneGorev, BorderLayout.CENTER);
 
         JPanel pnlAlt = new JPanel(new FlowLayout());
         JButton btnSil = new JButton("Seçili Görevi Sil");
