@@ -122,6 +122,7 @@ public class Arayuz extends JFrame {
             public boolean isCellEditable(int row, int column) { return false; }
         };
         tabloAracGorev = new JTable(modelAracGorev);
+        tabloAracGorev.getTableHeader().setReorderingAllowed(false);
         tabloAciklamaDinleyicisiEkle(tabloAracGorev, 4);
         
         pnlAracGorev = new JPanel(new BorderLayout());
@@ -244,6 +245,7 @@ public class Arayuz extends JFrame {
             public boolean isCellEditable(int row, int column) { return false; }
         };
         tabloGorev = new JTable(modelGorev);
+        tabloGorev.getTableHeader().setReorderingAllowed(false);
         tabloAciklamaDinleyicisiEkle(tabloGorev, 5);
 
         tabloGorev.getSelectionModel().addListSelectionListener(e -> {
@@ -336,6 +338,7 @@ public class Arayuz extends JFrame {
             }
         };
         tabloRapor = new JTable(modelRapor);
+        tabloRapor.getTableHeader().setReorderingAllowed(false);
         tabloAciklamaDinleyicisiEkle(tabloRapor, 7);
         panelRapor.add(new JScrollPane(tabloRapor), BorderLayout.CENTER);
 

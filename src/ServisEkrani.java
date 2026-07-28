@@ -98,6 +98,7 @@ public class ServisEkrani extends JDialog {
             public boolean isCellEditable(int row, int column) { return false; }
         };
         tabloServis = new JTable(modelServis);
+        tabloServis.getTableHeader().setReorderingAllowed(false);
         tabloAciklamaDinleyicisiEkle(tabloServis, 3);
         
         tabloServis.getSelectionModel().addListSelectionListener(e -> {
