@@ -15,11 +15,16 @@ public class Arayuz extends JFrame {
     private JPanel panelRapor;
 
     private JTextField txtMarka, txtModel, txtPlaka, txtSaseNo;
-    private JTable tabloArac;
-    private DefaultTableModel modelArac;
+    private JPanel pnlAracListesi;
+    private String seciliAracPlakasi = null;
     private JComboBox<String> cbAracPlaka;
+    
+    private JTable tabloAracGorev;
+    private DefaultTableModel modelAracGorev;
+    private JPanel pnlAracGorev;
 
-    private JTextField txtSoforAdi, txtIl, txtIlce, txtRapor, txtTarih;
+    private JTextField txtSoforAdi, txtIl, txtIlce, txtTarih;
+    private JTextArea txtRapor;
     private JTable tabloGorev;
     private DefaultTableModel modelGorev;
 
@@ -63,22 +68,25 @@ public class Arayuz extends JFrame {
         panelArac = new JPanel(new BorderLayout(10, 10));
         panelArac.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JPanel btnGirdisi = new JPanel(new GridLayout(6, 2, 5, 5));
-        btnGirdisi.add(new JLabel("Marka:"));
+        JPanel pnlGirdiAlanlari = new JPanel(new GridLayout(4, 2, 5, 5));
+        pnlGirdiAlanlari.add(new JLabel("Marka:"));
         txtMarka = new JTextField();
-        btnGirdisi.add(txtMarka);
+        pnlGirdiAlanlari.add(txtMarka);
 
-        btnGirdisi.add(new JLabel("Model:"));
+        pnlGirdiAlanlari.add(new JLabel("Model:"));
         txtModel = new JTextField();
-        btnGirdisi.add(txtModel);
+        pnlGirdiAlanlari.add(txtModel);
 
-        btnGirdisi.add(new JLabel("Plaka:"));
+        pnlGirdiAlanlari.add(new JLabel("Plaka:"));
         txtPlaka = new JTextField();
-        btnGirdisi.add(txtPlaka);
+        pnlGirdiAlanlari.add(txtPlaka);
 
-        btnGirdisi.add(new JLabel("Şase No:"));
+        pnlGirdiAlanlari.add(new JLabel("Şase No:"));
         txtSaseNo = new JTextField();
-        btnGirdisi.add(txtSaseNo);
+        pnlGirdiAlanlari.add(txtSaseNo);
+
+        JButton btnTemizle = new JButton("Formu Temizle");
+        btnTemizle.addActionListener(e -> alanlariTemizleArac());
 
         JButton btnKaydet = new JButton("Yeni Araç Kaydet");
         btnKaydet.addActionListener(e -> aracKaydet());
@@ -86,29 +94,43 @@ public class Arayuz extends JFrame {
         JButton btnGuncelle = new JButton("Seçileni Güncelle");
         btnGuncelle.addActionListener(e -> aracGuncelle());
 
-        btnGirdisi.add(btnGuncelle);
-        btnGirdisi.add(btnKaydet);
+        JPanel pnlButonlar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        pnlButonlar.setBorder(BorderFactory.createEmptyBorder(10, 0, 5, 0));
+        pnlButonlar.add(btnTemizle);
+        pnlButonlar.add(btnGuncelle);
+        pnlButonlar.add(btnKaydet);
+        
+        JPanel pnlKuzey = new JPanel(new BorderLayout());
+        pnlKuzey.add(pnlGirdiAlanlari, BorderLayout.CENTER);
+        pnlKuzey.add(pnlButonlar, BorderLayout.SOUTH);
 
-        panelArac.add(btnGirdisi, BorderLayout.NORTH);
+        panelArac.add(pnlKuzey, BorderLayout.NORTH);
 
-        modelArac = new DefaultTableModel(new String[]{"Plaka", "Marka", "Model", "Şase No"}, 0) {
+        modelAracGorev = new DefaultTableModel(new String[]{"Şoför", "İl", "İlçe", "Tarih", "Açıklama"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
         };
-        tabloArac = new JTable(modelArac);
+        tabloAracGorev = new JTable(modelAracGorev);
         
-        tabloArac.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting() && tabloArac.getSelectedRow() != -1) {
-                int row = tabloArac.getSelectedRow();
-                txtPlaka.setText(modelArac.getValueAt(row, 0).toString());
-                txtMarka.setText(modelArac.getValueAt(row, 1).toString());
-                txtModel.setText(modelArac.getValueAt(row, 2).toString());
-                txtSaseNo.setText(modelArac.getValueAt(row, 3).toString());
-                txtPlaka.setEnabled(false);
-            }
-        });
+        pnlAracGorev = new JPanel(new BorderLayout());
+        pnlAracGorev.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createEmptyBorder(0, 25, 15, 25), // İçeri doğru girinti (Indent)
+                BorderFactory.createLineBorder(new Color(210, 210, 210), 1, true)
+        ));
+        pnlAracGorev.setPreferredSize(new Dimension(0, 160));
+        pnlAracGorev.setBackground(Color.WHITE);
+        pnlAracGorev.add(new JScrollPane(tabloAracGorev), BorderLayout.CENTER);
+        
+        pnlAracGorev.setVisible(false);
+        
+        pnlAracListesi = new JPanel();
+        pnlAracListesi.setLayout(new BoxLayout(pnlAracListesi, BoxLayout.Y_AXIS));
+        pnlAracListesi.setBackground(Color.WHITE);
+        pnlAracListesi.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15)); // Listenin dış boşluğu
 
-        panelArac.add(new JScrollPane(tabloArac), BorderLayout.CENTER);
+        JScrollPane scrollPane = new JScrollPane(pnlAracListesi);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        panelArac.add(scrollPane, BorderLayout.CENTER);
 
         JPanel pnlAlt = new JPanel(new FlowLayout());
         JButton btnSil = new JButton("Seçili Aracı Sil");
@@ -126,31 +148,45 @@ public class Arayuz extends JFrame {
         panelGorev = new JPanel(new BorderLayout(10, 10));
         panelGorev.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JPanel Girdi = new JPanel(new GridLayout(8, 2, 5, 5));
+        JPanel pnlGirdiAlanlari = new JPanel(new GridLayout(5, 2, 5, 5));
         
-        Girdi.add(new JLabel("Araç Plakası:"));
+        pnlGirdiAlanlari.add(new JLabel("Araç Plakası:"));
         cbAracPlaka = new JComboBox<>();
-        Girdi.add(cbAracPlaka);
+        pnlGirdiAlanlari.add(cbAracPlaka);
 
-        Girdi.add(new JLabel("Şoför Adı:"));
+        pnlGirdiAlanlari.add(new JLabel("Şoför Adı:"));
         txtSoforAdi = new JTextField();
-        Girdi.add(txtSoforAdi);
+        pnlGirdiAlanlari.add(txtSoforAdi);
 
-        Girdi.add(new JLabel("İl:"));
+        pnlGirdiAlanlari.add(new JLabel("İl:"));
         txtIl = new JTextField();
-        Girdi.add(txtIl);
+        pnlGirdiAlanlari.add(txtIl);
 
-        Girdi.add(new JLabel("İlçe:"));
+        pnlGirdiAlanlari.add(new JLabel("İlçe:"));
         txtIlce = new JTextField();
-        Girdi.add(txtIlce);
+        pnlGirdiAlanlari.add(txtIlce);
 
-        Girdi.add(new JLabel("Açıklama (Rapor):"));
-        txtRapor = new JTextField();
-        Girdi.add(txtRapor);
-
-        Girdi.add(new JLabel("Tarih (GG/AA/YYYY):"));
+        pnlGirdiAlanlari.add(new JLabel("Tarih (GG/AA/YYYY):"));
         txtTarih = new JTextField();
-        Girdi.add(txtTarih);
+        txtTarih.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent e) {
+                String text = txtTarih.getText();
+                if (e.getKeyCode() != java.awt.event.KeyEvent.VK_BACK_SPACE) {
+                    if (text.length() == 2 || text.length() == 5) {
+                        txtTarih.setText(text + "/");
+                    }
+                }
+            }
+            public void keyTyped(java.awt.event.KeyEvent e) {
+                if (txtTarih.getText().length() >= 10) {
+                    e.consume();
+                }
+            }
+        });
+        pnlGirdiAlanlari.add(txtTarih);
+
+        JButton btnTemizle = new JButton("Formu Temizle");
+        btnTemizle.addActionListener(e -> alanlariTemizleGorev());
 
         JButton Kaydet = new JButton("Yeni Görev Kaydet");
         Kaydet.addActionListener(e -> gorevKaydet());
@@ -158,10 +194,30 @@ public class Arayuz extends JFrame {
         JButton btnGuncelle = new JButton("Seçileni Güncelle");
         btnGuncelle.addActionListener(e -> gorevGuncelle());
 
-        Girdi.add(btnGuncelle);
-        Girdi.add(Kaydet);
+        JPanel pnlButonlar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        pnlButonlar.setBorder(BorderFactory.createEmptyBorder(10, 0, 5, 0));
+        pnlButonlar.add(btnTemizle);
+        pnlButonlar.add(btnGuncelle);
+        pnlButonlar.add(Kaydet);
+        
+        JPanel pnlAciklama = new JPanel(new BorderLayout(0, 5));
+        pnlAciklama.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+        pnlAciklama.add(new JLabel("Açıklama (Rapor):"), BorderLayout.NORTH);
+        txtRapor = new JTextArea(3, 20); // 3 satırlık geniş bir alan
+        txtRapor.setLineWrap(true);
+        txtRapor.setWrapStyleWord(true);
+        txtRapor.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        pnlAciklama.add(new JScrollPane(txtRapor), BorderLayout.CENTER);
 
-        panelGorev.add(Girdi, BorderLayout.NORTH);
+        JPanel pnlUstGruplar = new JPanel(new BorderLayout());
+        pnlUstGruplar.add(pnlGirdiAlanlari, BorderLayout.NORTH);
+        pnlUstGruplar.add(pnlAciklama, BorderLayout.CENTER);
+
+        JPanel pnlKuzey = new JPanel(new BorderLayout());
+        pnlKuzey.add(pnlUstGruplar, BorderLayout.CENTER);
+        pnlKuzey.add(pnlButonlar, BorderLayout.SOUTH);
+
+        panelGorev.add(pnlKuzey, BorderLayout.NORTH);
 
         modelGorev = new DefaultTableModel(new String[]{"ID", "Plaka", "Şoför", "İl", "İlçe", "Açıklama", "Tarih"}, 0) {
             @Override
@@ -229,7 +285,8 @@ public class Arayuz extends JFrame {
     }
 
     private void araclariYukle() {
-        modelArac.setRowCount(0);
+        if (pnlAracListesi == null) return;
+        pnlAracListesi.removeAll();
         cbAracPlaka.removeAllItems();
         
         String sql = "SELECT * FROM Araclar";
@@ -239,11 +296,108 @@ public class Arayuz extends JFrame {
              
              while (rs.next()) {
                  String plaka = rs.getString("plaka");
-                 modelArac.addRow(new Object[]{
-                     plaka, rs.getString("marka"), rs.getString("model"), rs.getString("sase")
-                 });
+                 String marka = rs.getString("marka");
+                 String model = rs.getString("model");
+                 String sase = rs.getString("sase");
+                 
                  cbAracPlaka.addItem(plaka);
+                 
+                 JPanel pnlAracItem = new JPanel(new BorderLayout(15, 0));
+                 pnlAracItem.setBorder(BorderFactory.createCompoundBorder(
+                         BorderFactory.createEmptyBorder(5, 10, 5, 10),
+                         BorderFactory.createCompoundBorder(
+                                 BorderFactory.createLineBorder(new Color(200, 200, 200), 1, true),
+                                 BorderFactory.createEmptyBorder(10, 15, 10, 15)
+                         )
+                 ));
+                 pnlAracItem.setBackground(new Color(245, 247, 250));
+                 pnlAracItem.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
+                 
+                 JLabel lblPlaka = new JLabel("🚘 " + plaka);
+                 lblPlaka.setFont(new Font("Segoe UI", Font.BOLD, 16));
+                 lblPlaka.setForeground(new Color(30, 70, 140));
+                 
+                 JLabel lblMarkaModel = new JLabel(marka + " " + model);
+                 lblMarkaModel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+                 lblMarkaModel.setForeground(Color.DARK_GRAY);
+                 
+                 JLabel lblSase = new JLabel("Şase: " + sase);
+                 lblSase.setFont(new Font("Segoe UI", Font.ITALIC, 12));
+                 lblSase.setForeground(Color.GRAY);
+                 
+                 pnlAracItem.add(lblPlaka, BorderLayout.WEST);
+                 pnlAracItem.add(lblMarkaModel, BorderLayout.CENTER);
+                 pnlAracItem.add(lblSase, BorderLayout.EAST);
+                 pnlAracItem.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                 
+                 JPanel pnlKapsayici = new JPanel(new BorderLayout());
+                 pnlKapsayici.add(pnlAracItem, BorderLayout.NORTH);
+                 pnlKapsayici.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60)); // Default closed height
+                 pnlKapsayici.setAlignmentX(Component.LEFT_ALIGNMENT); // Sola hizala (kırılmaları önler)
+                 pnlKapsayici.setBackground(Color.WHITE);
+                 
+                 java.awt.event.MouseAdapter clickAdapter = new java.awt.event.MouseAdapter() {
+                     public void mouseClicked(java.awt.event.MouseEvent evt) {
+                         // Eğer zaten açık olan bir araca (akordeona) tıkladıysa kapat (Toggle Off)
+                         if (plaka.equals(seciliAracPlakasi) && pnlAracGorev.isVisible() && pnlAracGorev.getParent() == pnlKapsayici) {
+                             pnlKapsayici.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
+                             pnlAracItem.setBackground(new Color(245, 247, 250));
+                             pnlAracGorev.setVisible(false);
+                             
+                             // Formu temizle ve seçimi kaldır
+                             seciliAracPlakasi = null;
+                             txtPlaka.setText("");
+                             txtMarka.setText("");
+                             txtModel.setText("");
+                             txtSaseNo.setText("");
+                             txtPlaka.setEnabled(true);
+                             
+                             pnlAracListesi.revalidate();
+                             pnlAracListesi.repaint();
+                             return; // Açma kodlarına geçmeden metodu bitir
+                         }
+                         
+                         // Farklı bir araca tıkladıysa veya kapalıysa aç (Toggle On)
+                         seciliAracPlakasi = plaka;
+                         txtPlaka.setText(plaka);
+                         txtMarka.setText(marka);
+                         txtModel.setText(model);
+                         txtSaseNo.setText(sase);
+                         txtPlaka.setEnabled(false);
+                         
+                         aracaAitGorevleriTabloyaDoldur(plaka);
+                         pnlAracGorev.setVisible(true);
+                         
+                         pnlKapsayici.add(pnlAracGorev, BorderLayout.CENTER);
+                         
+                         // Diğer tüm panelleri kapat ve varsayılan renge döndür
+                         for (Component c : pnlAracListesi.getComponents()) {
+                             if (c instanceof JPanel && c != pnlKapsayici) {
+                                 ((JPanel) c).setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
+                                 ((JPanel) c).getComponent(0).setBackground(new Color(245, 247, 250));
+                             }
+                         }
+                         
+                         pnlKapsayici.setMaximumSize(new Dimension(Integer.MAX_VALUE, 240)); // Genişlet
+                         pnlAracItem.setBackground(new Color(220, 235, 255)); // Mavi vurgu rengi
+                         
+                         pnlAracListesi.revalidate();
+                         pnlAracListesi.repaint();
+                     }
+                 };
+                 
+                 pnlAracItem.addMouseListener(clickAdapter);
+                 lblPlaka.addMouseListener(clickAdapter);
+                 lblMarkaModel.addMouseListener(clickAdapter);
+                 lblSase.addMouseListener(clickAdapter);
+                 
+                 pnlAracListesi.add(pnlKapsayici);
+                 pnlAracListesi.add(Box.createVerticalStrut(5)); // Spacer
              }
+             pnlAracListesi.add(Box.createVerticalGlue()); // Push to top
+             pnlAracListesi.revalidate();
+             pnlAracListesi.repaint();
+             
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Araçlar yüklenirken hata: " + e.getMessage());
         }
@@ -256,7 +410,7 @@ public class Arayuz extends JFrame {
         String saseNo = txtSaseNo.getText().trim();
 
         if (marka.isEmpty() || model.isEmpty() || plaka.isEmpty() || saseNo.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Lütfen tüm alanları doldurun!", "Hata", JOptionPane.ERROR_MESSAGE);
+            Toast.hata(this, "Lütfen tüm alanları doldurun!");
             return;
         }
 
@@ -279,7 +433,7 @@ public class Arayuz extends JFrame {
 
     private void aracGuncelle() {
         if (txtPlaka.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Lütfen güncellenecek aracı seçin!", "Hata", JOptionPane.ERROR_MESSAGE);
+            Toast.hata(this, "Lütfen güncellenecek aracı seçin!");
             return;
         }
 
@@ -293,7 +447,7 @@ public class Arayuz extends JFrame {
             pstmt.setString(4, txtPlaka.getText().trim());
             pstmt.executeUpdate();
             
-            JOptionPane.showMessageDialog(this, "Araç güncellendi.", "Bilgi", JOptionPane.INFORMATION_MESSAGE);
+            Toast.basarili(this, "Araç güncellendi.");
             araclariYukle();
             raporlariYukle();
             alanlariTemizleArac();
@@ -303,12 +457,14 @@ public class Arayuz extends JFrame {
     }
 
     private void aracSil() {
-        int row = tabloArac.getSelectedRow();
-        if (row == -1) return;
+        if (seciliAracPlakasi == null) {
+            Toast.hata(this, "Lütfen silinecek aracı listeden seçin!");
+            return;
+        }
         
         int onay = JOptionPane.showConfirmDialog(this, "Seçili aracı silmek istediğinize emin misiniz?" , "Silme Onayı", JOptionPane.YES_NO_OPTION);
         if (onay == JOptionPane.YES_OPTION) {
-            String plaka = modelArac.getValueAt(row, 0).toString();
+            String plaka = seciliAracPlakasi;
             String sql = "DELETE FROM Araclar WHERE plaka = ?";
             try (Connection conn = Veritabani.baglan();
                  PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -319,7 +475,7 @@ public class Arayuz extends JFrame {
                 pstmt.setString(1, plaka);
                 pstmt.executeUpdate();
                 
-                JOptionPane.showMessageDialog(this, "Araç silindi.", "Bilgi", JOptionPane.INFORMATION_MESSAGE);
+                Toast.basarili(this, "Araç silindi.");
                 araclariYukle();
                 gorevleriYukle();
                 raporlariYukle();
@@ -331,12 +487,11 @@ public class Arayuz extends JFrame {
     }
 
     private void servisEkraniniAc() {
-        int row = tabloArac.getSelectedRow();
-        if (row == -1) {
-            JOptionPane.showMessageDialog(this, "Lütfen servis/gider kaydı girmek istediğiniz aracı tablodan seçin!", "Uyarı", JOptionPane.WARNING_MESSAGE);
+        if (seciliAracPlakasi == null) {
+            Toast.uyari(this, "Önce bir araç seçmelisiniz!");
             return;
         }
-        String plaka = modelArac.getValueAt(row, 0).toString();
+        String plaka = seciliAracPlakasi;
         new ServisEkrani(this, plaka).setVisible(true);
     }
 
@@ -356,11 +511,37 @@ public class Arayuz extends JFrame {
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Görevler yüklenirken hata: " + e.getMessage());
         }
+        
+        // Eğer Araç Yönetimi sekmesinde bir araç seçiliyse alt tabloyu da güncelle
+        if (seciliAracPlakasi != null) {
+            aracaAitGorevleriTabloyaDoldur(seciliAracPlakasi);
+        }
+    }
+
+    private void aracaAitGorevleriTabloyaDoldur(String plaka) {
+        if (modelAracGorev == null) return;
+        modelAracGorev.setRowCount(0);
+        String sql = "SELECT * FROM Gorevler WHERE plaka = ?";
+        try (Connection conn = Veritabani.baglan();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             
+             pstmt.setString(1, plaka);
+             ResultSet rs = pstmt.executeQuery();
+             
+             while (rs.next()) {
+                 modelAracGorev.addRow(new Object[]{
+                     rs.getString("sofor"), rs.getString("il"), rs.getString("ilce"), 
+                     rs.getString("tarih"), rs.getString("rapor")
+                 });
+             }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Araç görevleri yüklenirken hata: " + e.getMessage());
+        }
     }
 
     private void gorevKaydet() {
         if (cbAracPlaka.getSelectedItem() == null) {
-            JOptionPane.showMessageDialog(this, "Lütfen önce bir araç kaydedin veya seçin,", "Hata", JOptionPane.ERROR_MESSAGE);
+            Toast.hata(this, "Lütfen önce bir araç kaydedin veya seçin!");
             return;
         }
 
@@ -372,7 +553,7 @@ public class Arayuz extends JFrame {
         String tarih = txtTarih.getText().trim();
 
         if (sofor.isEmpty() || il.isEmpty() || ilce.isEmpty() || rapor.isEmpty() || tarih.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Lütfen tüm alanları doldurun!", "Hata", JOptionPane.ERROR_MESSAGE);
+            Toast.hata(this, "Lütfen tüm alanları doldurun!");
             return;
         }
 
@@ -388,7 +569,7 @@ public class Arayuz extends JFrame {
             pstmt.setString(6, tarih);
             pstmt.executeUpdate();
             
-            JOptionPane.showMessageDialog(this, "Görev başarıyla kaydedildi.", "Bilgi", JOptionPane.INFORMATION_MESSAGE);
+            Toast.basarili(this, "Görev başarıyla kaydedildi.");
             gorevleriYukle();
             raporlariYukle();
             alanlariTemizleGorev();
@@ -400,7 +581,7 @@ public class Arayuz extends JFrame {
     private void gorevGuncelle() {
         int row = tabloGorev.getSelectedRow();
         if (row == -1) {
-            JOptionPane.showMessageDialog(this, "Lütfen güncellenecek görevi tablodan seçin!", "Hata", JOptionPane.ERROR_MESSAGE);
+            Toast.hata(this, "Lütfen güncellenecek görevi tablodan seçin!");
             return;
         }
 
@@ -419,7 +600,7 @@ public class Arayuz extends JFrame {
             pstmt.setInt(7, id);
             pstmt.executeUpdate();
             
-            JOptionPane.showMessageDialog(this, "Görev güncellendi.", "Bilgi", JOptionPane.INFORMATION_MESSAGE);
+            Toast.basarili(this, "Görev güncellendi.");
             gorevleriYukle();
             raporlariYukle();
             alanlariTemizleGorev();
@@ -442,7 +623,7 @@ public class Arayuz extends JFrame {
                 pstmt.setInt(1, id);
                 pstmt.executeUpdate();
                 
-                JOptionPane.showMessageDialog(this, "Görev silindi.", "Bilgi", JOptionPane.INFORMATION_MESSAGE);
+                Toast.basarili(this, "Görev silindi.");
                 gorevleriYukle();
                 raporlariYukle();
                 alanlariTemizleGorev();
@@ -517,7 +698,11 @@ public class Arayuz extends JFrame {
         txtPlaka.setText("");
         txtPlaka.setEnabled(true);
         txtSaseNo.setText("");
-        tabloArac.clearSelection();
+        seciliAracPlakasi = null;
+        if (pnlAracGorev != null) {
+            pnlAracGorev.setVisible(false);
+        }
+        araclariYukle(); // Listeyi sıfırlamak ve açılan akordeonu kapatmak için yeniden yükle
     }
 
     private void alanlariTemizleGorev() {
