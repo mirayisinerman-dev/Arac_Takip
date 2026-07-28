@@ -742,10 +742,6 @@ public class Arayuz extends JFrame {
                  rsGorev.close();
                  ps.close();
                  
-                 if (!gosterilecekGorevVar) {
-                     String uyari = haftalikRaporGoster ? "Bu Hafta Görev Yok" : "Görev Yok";
-                     modelRapor.addRow(new Object[]{"-", plaka, arac[1], arac[2], uyari, uyari, "-", "-"});
-                 }
              }
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Raporlar yüklenirken hata: " + e.getMessage());
