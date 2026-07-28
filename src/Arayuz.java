@@ -68,7 +68,16 @@ public class Arayuz extends JFrame {
         panelArac = new JPanel(new BorderLayout(10, 10));
         panelArac.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JPanel pnlGirdiAlanlari = new JPanel(new GridLayout(4, 2, 5, 5));
+        JPanel pnlSol = new JPanel(new BorderLayout(0, 15));
+        pnlSol.setPreferredSize(new Dimension(280, 0));
+        pnlSol.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createTitledBorder("Araç Kayıt / Düzenleme"),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+
+        // Sol paneldeki kutucuklar alt alta daha şık durur (Etiket üstte, kutu altta)
+        JPanel pnlGirdiAlanlari = new JPanel(new GridLayout(8, 1, 0, 5));
+        
         pnlGirdiAlanlari.add(new JLabel("Marka:"));
         txtMarka = new JTextField();
         pnlGirdiAlanlari.add(txtMarka);
@@ -94,17 +103,20 @@ public class Arayuz extends JFrame {
         JButton btnGuncelle = new JButton("Seçileni Güncelle");
         btnGuncelle.addActionListener(e -> aracGuncelle());
 
-        JPanel pnlButonlar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-        pnlButonlar.setBorder(BorderFactory.createEmptyBorder(10, 0, 5, 0));
-        pnlButonlar.add(btnTemizle);
-        pnlButonlar.add(btnGuncelle);
+        // Yan menü dar olduğu için butonları alt alta (3 satır) dizmek daha ergonomiktir
+        JPanel pnlButonlar = new JPanel(new GridLayout(3, 1, 0, 8));
+        pnlButonlar.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
         pnlButonlar.add(btnKaydet);
+        pnlButonlar.add(btnGuncelle);
+        pnlButonlar.add(btnTemizle);
         
-        JPanel pnlKuzey = new JPanel(new BorderLayout());
-        pnlKuzey.add(pnlGirdiAlanlari, BorderLayout.CENTER);
-        pnlKuzey.add(pnlButonlar, BorderLayout.SOUTH);
+        JPanel pnlIcerik = new JPanel(new BorderLayout());
+        pnlIcerik.add(pnlGirdiAlanlari, BorderLayout.NORTH);
+        pnlIcerik.add(pnlButonlar, BorderLayout.CENTER);
 
-        panelArac.add(pnlKuzey, BorderLayout.NORTH);
+        pnlSol.add(pnlIcerik, BorderLayout.NORTH);
+
+        panelArac.add(pnlSol, BorderLayout.WEST);
 
         modelAracGorev = new DefaultTableModel(new String[]{"Şoför", "İl", "İlçe", "Tarih", "Açıklama"}, 0) {
             @Override
@@ -129,6 +141,7 @@ public class Arayuz extends JFrame {
         pnlAracListesi.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15)); // Listenin dış boşluğu
 
         JScrollPane scrollPane = new JScrollPane(pnlAracListesi);
+        scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         panelArac.add(scrollPane, BorderLayout.CENTER);
 
