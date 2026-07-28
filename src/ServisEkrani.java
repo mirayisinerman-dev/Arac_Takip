@@ -43,8 +43,15 @@ public class ServisEkrani extends JDialog {
         pnlGirdi.add(pnlTutar);
 
         pnlGirdi.add(new JLabel("Açıklama:"));
+        JPanel pnlAciklama = new JPanel(new BorderLayout(5, 0));
         txtAciklama = new JTextField();
-        pnlGirdi.add(txtAciklama);
+        txtAciklama.setEditable(false);
+        JButton btnAciklamaDetay = new JButton("📝");
+        btnAciklamaDetay.setToolTipText("Açıklama Oku/Yaz (Pop-up)");
+        btnAciklamaDetay.addActionListener(e -> gosterAciklamaPopup("Gider Açıklaması Yaz/Düzenle", txtAciklama.getText(), metin -> txtAciklama.setText(metin)));
+        pnlAciklama.add(txtAciklama, BorderLayout.CENTER);
+        pnlAciklama.add(btnAciklamaDetay, BorderLayout.EAST);
+        pnlGirdi.add(pnlAciklama);
 
         pnlGirdi.add(new JLabel("Tarih (GG/AA/YYYY):"));
         txtTarih = new JTextField();
@@ -92,6 +99,7 @@ public class ServisEkrani extends JDialog {
             public boolean isCellEditable(int row, int column) { return false; }
         };
         tabloServis = new JTable(modelServis);
+        tabloAciklamaDinleyicisiEkle(tabloServis, 3);
         
         tabloServis.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting() && tabloServis.getSelectedRow() != -1) {
@@ -271,5 +279,55 @@ public class ServisEkrani extends JDialog {
                 JOptionPane.showMessageDialog(this, "Silme hatası: " + e.getMessage(), "Hata", JOptionPane.ERROR_MESSAGE);
             }
         }
+    }
+
+    private void tabloAciklamaDinleyicisiEkle(JTable tablo, int aciklamaSutunIndeksi) {
+        tablo.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    int row = tablo.rowAtPoint(e.getPoint());
+                    int col = tablo.columnAtPoint(e.getPoint());
+                    if (row >= 0 && col == aciklamaSutunIndeksi) {
+                        Object val = tablo.getValueAt(row, col);
+                        String metin = (val != null) ? val.toString() : "";
+                        gosterAciklamaPopup("Açıklama Detayı (Okuma Modu)", metin, null);
+                    }
+                }
+            }
+        });
+    }
+
+    private void gosterAciklamaPopup(String baslik, String mevcutMetin, java.util.function.Consumer<String> onKaydet) {
+        JDialog dialog = new JDialog(this, baslik, false); // false = Non-Modal (sistemi kilitlemez)
+        dialog.setSize(450, 350);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout(10, 10));
+
+        JTextArea taDetay = new JTextArea(mevcutMetin);
+        taDetay.setLineWrap(true);
+        taDetay.setWrapStyleWord(true);
+        taDetay.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        taDetay.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        if (onKaydet == null) {
+            taDetay.setEditable(false);
+            taDetay.setBackground(new Color(245, 245, 245));
+        }
+
+        dialog.add(new JScrollPane(taDetay), BorderLayout.CENTER);
+
+        if (onKaydet != null) {
+            JButton btnTamam = new JButton("Kaydet ve Kapat");
+            btnTamam.addActionListener(e -> {
+                onKaydet.accept(taDetay.getText());
+                dialog.dispose();
+            });
+            JPanel pnlAlt = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            pnlAlt.setBorder(BorderFactory.createEmptyBorder(5, 10, 10, 10));
+            pnlAlt.add(btnTamam);
+            dialog.add(pnlAlt, BorderLayout.SOUTH);
+        }
+
+        dialog.setVisible(true);
     }
 }

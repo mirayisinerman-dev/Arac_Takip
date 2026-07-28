@@ -23,8 +23,7 @@ public class Arayuz extends JFrame {
     private DefaultTableModel modelAracGorev;
     private JPanel pnlAracGorev;
 
-    private JTextField txtSoforAdi, txtIl, txtIlce, txtTarih;
-    private JTextArea txtRapor;
+    private JTextField txtSoforAdi, txtIl, txtIlce, txtRapor, txtTarih;
     private JTable tabloGorev;
     private DefaultTableModel modelGorev;
 
@@ -123,6 +122,7 @@ public class Arayuz extends JFrame {
             public boolean isCellEditable(int row, int column) { return false; }
         };
         tabloAracGorev = new JTable(modelAracGorev);
+        tabloAciklamaDinleyicisiEkle(tabloAracGorev, 4);
         
         pnlAracGorev = new JPanel(new BorderLayout());
         pnlAracGorev.setBorder(BorderFactory.createCompoundBorder(
@@ -161,7 +161,7 @@ public class Arayuz extends JFrame {
         panelGorev = new JPanel(new BorderLayout(10, 10));
         panelGorev.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JPanel pnlGirdiAlanlari = new JPanel(new GridLayout(5, 2, 5, 5));
+        JPanel pnlGirdiAlanlari = new JPanel(new GridLayout(6, 2, 5, 5));
         
         pnlGirdiAlanlari.add(new JLabel("Araç Plakası:"));
         cbAracPlaka = new JComboBox<>();
@@ -178,6 +178,17 @@ public class Arayuz extends JFrame {
         pnlGirdiAlanlari.add(new JLabel("İlçe:"));
         txtIlce = new JTextField();
         pnlGirdiAlanlari.add(txtIlce);
+
+        pnlGirdiAlanlari.add(new JLabel("Açıklama (Rapor):"));
+        JPanel pnlRaporGirdi = new JPanel(new BorderLayout(5, 0));
+        txtRapor = new JTextField();
+        txtRapor.setEditable(false);
+        JButton btnRaporDetay = new JButton("📝");
+        btnRaporDetay.setToolTipText("Açıklama Oku/Yaz (Pop-up)");
+        btnRaporDetay.addActionListener(e -> gosterAciklamaPopup("Görev Açıklaması Yaz/Düzenle", txtRapor.getText(), metin -> txtRapor.setText(metin)));
+        pnlRaporGirdi.add(txtRapor, BorderLayout.CENTER);
+        pnlRaporGirdi.add(btnRaporDetay, BorderLayout.EAST);
+        pnlGirdiAlanlari.add(pnlRaporGirdi);
 
         pnlGirdiAlanlari.add(new JLabel("Tarih (GG/AA/YYYY):"));
         txtTarih = new JTextField();
@@ -213,21 +224,8 @@ public class Arayuz extends JFrame {
         pnlButonlar.add(btnGuncelle);
         pnlButonlar.add(Kaydet);
         
-        JPanel pnlAciklama = new JPanel(new BorderLayout(0, 5));
-        pnlAciklama.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
-        pnlAciklama.add(new JLabel("Açıklama (Rapor):"), BorderLayout.NORTH);
-        txtRapor = new JTextArea(3, 20); // 3 satırlık geniş bir alan
-        txtRapor.setLineWrap(true);
-        txtRapor.setWrapStyleWord(true);
-        txtRapor.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        pnlAciklama.add(new JScrollPane(txtRapor), BorderLayout.CENTER);
-
-        JPanel pnlUstGruplar = new JPanel(new BorderLayout());
-        pnlUstGruplar.add(pnlGirdiAlanlari, BorderLayout.NORTH);
-        pnlUstGruplar.add(pnlAciklama, BorderLayout.CENTER);
-
         JPanel pnlKuzey = new JPanel(new BorderLayout());
-        pnlKuzey.add(pnlUstGruplar, BorderLayout.CENTER);
+        pnlKuzey.add(pnlGirdiAlanlari, BorderLayout.CENTER);
         pnlKuzey.add(pnlButonlar, BorderLayout.SOUTH);
 
         panelGorev.add(pnlKuzey, BorderLayout.NORTH);
@@ -237,6 +235,7 @@ public class Arayuz extends JFrame {
             public boolean isCellEditable(int row, int column) { return false; }
         };
         tabloGorev = new JTable(modelGorev);
+        tabloAciklamaDinleyicisiEkle(tabloGorev, 5);
 
         tabloGorev.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting() && tabloGorev.getSelectedRow() != -1) {
@@ -260,6 +259,56 @@ public class Arayuz extends JFrame {
         panelGorev.add(pnlAlt, BorderLayout.SOUTH);
     }
 
+    private void tabloAciklamaDinleyicisiEkle(JTable tablo, int aciklamaSutunIndeksi) {
+        tablo.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    int row = tablo.rowAtPoint(e.getPoint());
+                    int col = tablo.columnAtPoint(e.getPoint());
+                    if (row >= 0 && col == aciklamaSutunIndeksi) {
+                        Object val = tablo.getValueAt(row, col);
+                        String metin = (val != null) ? val.toString() : "";
+                        gosterAciklamaPopup("Açıklama Detayı (Okuma Modu)", metin, null);
+                    }
+                }
+            }
+        });
+    }
+
+    private void gosterAciklamaPopup(String baslik, String mevcutMetin, java.util.function.Consumer<String> onKaydet) {
+        JDialog dialog = new JDialog(this, baslik, false); // false = Non-Modal (sistemi kilitlemez)
+        dialog.setSize(450, 350);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout(10, 10));
+
+        JTextArea taDetay = new JTextArea(mevcutMetin);
+        taDetay.setLineWrap(true);
+        taDetay.setWrapStyleWord(true);
+        taDetay.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        taDetay.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        if (onKaydet == null) {
+            taDetay.setEditable(false);
+            taDetay.setBackground(new Color(245, 245, 245));
+        }
+
+        dialog.add(new JScrollPane(taDetay), BorderLayout.CENTER);
+
+        if (onKaydet != null) {
+            JButton btnTamam = new JButton("Kaydet ve Kapat");
+            btnTamam.addActionListener(e -> {
+                onKaydet.accept(taDetay.getText());
+                dialog.dispose();
+            });
+            JPanel pnlAlt = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            pnlAlt.setBorder(BorderFactory.createEmptyBorder(5, 10, 10, 10));
+            pnlAlt.add(btnTamam);
+            dialog.add(pnlAlt, BorderLayout.SOUTH);
+        }
+
+        dialog.setVisible(true);
+    }
+
     private void olusturPanelRapor() {
         panelRapor = new JPanel(new BorderLayout(10, 10));
         panelRapor.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -276,6 +325,7 @@ public class Arayuz extends JFrame {
             }
         };
         tabloRapor = new JTable(modelRapor);
+        tabloAciklamaDinleyicisiEkle(tabloRapor, 7);
         panelRapor.add(new JScrollPane(tabloRapor), BorderLayout.CENTER);
 
         JPanel pnlFiltre = new JPanel(new FlowLayout());
