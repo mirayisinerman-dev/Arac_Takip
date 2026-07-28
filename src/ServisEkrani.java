@@ -45,7 +45,6 @@ public class ServisEkrani extends JDialog {
         pnlGirdi.add(new JLabel("Açıklama:"));
         JPanel pnlAciklama = new JPanel(new BorderLayout(5, 0));
         txtAciklama = new JTextField();
-        txtAciklama.setEditable(false);
         JButton btnAciklamaDetay = new JButton("📝");
         btnAciklamaDetay.setToolTipText("Açıklama Oku/Yaz (Pop-up)");
         btnAciklamaDetay.addActionListener(e -> gosterAciklamaPopup("Gider Açıklaması Yaz/Düzenle", txtAciklama.getText(), metin -> txtAciklama.setText(metin)));

@@ -190,7 +190,6 @@ public class Arayuz extends JFrame {
         pnlGirdiAlanlari.add(new JLabel("Açıklama (Rapor):"));
         JPanel pnlRaporGirdi = new JPanel(new BorderLayout(5, 0));
         txtRapor = new JTextField();
-        txtRapor.setEditable(false);
         JButton btnRaporDetay = new JButton("📝");
         btnRaporDetay.setToolTipText("Açıklama Oku/Yaz (Pop-up)");
         btnRaporDetay.addActionListener(e -> gosterAciklamaPopup("Görev Açıklaması Yaz/Düzenle", txtRapor.getText(), metin -> txtRapor.setText(metin)));
