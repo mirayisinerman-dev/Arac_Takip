@@ -3,4 +3,3 @@ public class Main {
         Arayuz program = new Arayuz();
     }
 }
-//Araca özel rapor

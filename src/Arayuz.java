@@ -4,12 +4,10 @@ import java.awt.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-//entera basıldığında kaydet
-//tarih girerken otomatik / atsın
-//onaylama kutularını sil
-//araç plakasında ekstra elle girilebilecek bir alan
+import javax.swing.text.MaskFormatter;
 public class Arayuz extends JFrame {
-    private JTabbedPane sekme;
+    private JPanel kartPaneli;
+    private CardLayout kartLayout;
     private JPanel panelArac;
     private JPanel panelGorev;
     private JPanel panelRapor;
@@ -34,33 +32,103 @@ public class Arayuz extends JFrame {
     public Arayuz() {
         Veritabani.tablolariOlustur();
 
+        // --- UI GÖRSEL AYARLARI ---
+        setGlobalFont(new javax.swing.plaf.FontUIResource("Segoe UI", Font.PLAIN, 14));
+        UIManager.put("Button.font", new Font("Segoe UI", Font.BOLD, 14));
+        UIManager.put("Label.font", new Font("Segoe UI", Font.PLAIN, 14));
+        // Ultra-Modern FlatLaf Teması (Mac/Web tarzı)
+        try {
+            // JAR dosyası IntelliJ'den eklendiğinde tam Mac/Windows 11 tasarımına geçer.
+            UIManager.setLookAndFeel("com.formdev.flatlaf.FlatLightLaf");
+        } catch (Exception e) {
+            System.err.println("FlatLaf JAR bulunamadı. Uygulama standart görünümde açılıyor.");
+        }
+
         setTitle("Araç Takip ve Görevlendirme Sistemi");
-        setSize(1000, 700);
+        setSize(1100, 750);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-
-        sekme = new JTabbedPane();
+        setLayout(new BorderLayout());
 
         olusturPanelArac();
         olusturPanelGorev();
         olusturPanelRapor();
 
-        sekme.addTab("Araç Yönetimi", panelArac);
-        sekme.addTab("Görevlendirme", panelGorev);
-        sekme.addTab("Genel Bakış / Raporlar", panelRapor);
+        kartLayout = new CardLayout();
+        kartPaneli = new JPanel(kartLayout);
+        
+        kartPaneli.add(panelArac, "Arac");
+        kartPaneli.add(panelGorev, "Gorev");
+        kartPaneli.add(panelRapor, "Rapor");
 
-        sekme.addChangeListener(e -> {
-            if (sekme.getSelectedIndex() == 2) {
-                raporlariYukle();
-            }
-        });
+        olusturHeader();
+        olusturSidebar();
 
-        add(sekme);
+        add(kartPaneli, BorderLayout.CENTER);
         
         araclariYukle();
         gorevleriYukle();
 
         setVisible(true);
+    }
+
+    private void olusturHeader() {
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(new Color(41, 128, 185)); // Kurumsal Mavi
+        headerPanel.setPreferredSize(new Dimension(0, 60));
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 20));
+
+        JLabel lblSirket = new JLabel("Araç Yönetim Sistemi");
+        lblSirket.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lblSirket.setForeground(Color.WHITE);
+        
+        headerPanel.add(lblSirket, BorderLayout.WEST);
+        add(headerPanel, BorderLayout.NORTH);
+    }
+
+    private void olusturSidebar() {
+        JPanel sidebarPanel = new JPanel();
+        sidebarPanel.setLayout(new BoxLayout(sidebarPanel, BoxLayout.Y_AXIS));
+        sidebarPanel.setBackground(new Color(44, 62, 80)); // Koyu Lacivert (Dark Navy)
+        sidebarPanel.setPreferredSize(new Dimension(220, 0));
+        sidebarPanel.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
+
+        JButton btnArac = createSidebarButton("Araç Yönetimi");
+        JButton btnGorev = createSidebarButton("Görevlendirme");
+        JButton btnRapor = createSidebarButton("Genel Bakış / Raporlar");
+
+        btnArac.addActionListener(e -> kartLayout.show(kartPaneli, "Arac"));
+        btnGorev.addActionListener(e -> kartLayout.show(kartPaneli, "Gorev"));
+        btnRapor.addActionListener(e -> { kartLayout.show(kartPaneli, "Rapor"); raporlariYukle(); });
+
+        sidebarPanel.add(btnArac);
+        sidebarPanel.add(Box.createVerticalStrut(10));
+        sidebarPanel.add(btnGorev);
+        sidebarPanel.add(Box.createVerticalStrut(10));
+        sidebarPanel.add(btnRapor);
+
+        add(sidebarPanel, BorderLayout.WEST);
+    }
+
+    private JButton createSidebarButton(String text) {
+        JButton btn = new JButton(text);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btn.setForeground(Color.WHITE);
+        btn.setBackground(new Color(52, 73, 94));
+        btn.setFocusPainted(false);
+        btn.setBorderPainted(false);
+        btn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btn.setMaximumSize(new Dimension(200, 40));
+        
+        btn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                btn.setBackground(new Color(41, 128, 185));
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                btn.setBackground(new Color(52, 73, 94));
+            }
+        });
+        return btn;
     }
 
     private void olusturPanelArac() {
@@ -76,6 +144,7 @@ public class Arayuz extends JFrame {
 
         // Sol paneldeki kutucuklar alt alta daha şık durur (Etiket üstte, kutu altta)
         JPanel pnlGirdiAlanlari = new JPanel(new GridLayout(8, 1, 0, 5));
+        pnlGirdiAlanlari.setBackground(Color.WHITE);
         
         pnlGirdiAlanlari.add(new JLabel("Marka:"));
         txtMarka = new JTextField();
@@ -93,13 +162,32 @@ public class Arayuz extends JFrame {
         txtSaseNo = new JTextField();
         pnlGirdiAlanlari.add(txtSaseNo);
 
+        // Enter tuşu ile kaydetme dinleyicisi (UX)
+        java.awt.event.ActionListener aracEnterAction = e -> {
+            if (seciliAracPlakasi == null) {
+                aracKaydet();
+            } else {
+                aracGuncelle();
+            }
+        };
+        txtMarka.addActionListener(aracEnterAction);
+        txtModel.addActionListener(aracEnterAction);
+        txtPlaka.addActionListener(aracEnterAction);
+        txtSaseNo.addActionListener(aracEnterAction);
+
         JButton btnTemizle = new JButton("Formu Temizle");
+        btnTemizle.setBackground(new Color(149, 165, 166)); // Gri
+        btnTemizle.setForeground(Color.WHITE);
         btnTemizle.addActionListener(e -> alanlariTemizleArac());
 
         JButton btnKaydet = new JButton("Yeni Araç Kaydet");
+        btnKaydet.setBackground(new Color(41, 128, 185)); // Mavi
+        btnKaydet.setForeground(Color.WHITE);
         btnKaydet.addActionListener(e -> aracKaydet());
         
         JButton btnGuncelle = new JButton("Seçileni Güncelle");
+        btnGuncelle.setBackground(new Color(39, 174, 96)); // Yeşil
+        btnGuncelle.setForeground(Color.WHITE);
         btnGuncelle.addActionListener(e -> aracGuncelle());
 
         // Yan menü dar olduğu için butonları alt alta (3 satır) dizmek daha ergonomiktir
@@ -122,6 +210,7 @@ public class Arayuz extends JFrame {
             public boolean isCellEditable(int row, int column) { return false; }
         };
         tabloAracGorev = new JTable(modelAracGorev);
+        tabloAracGorev.setRowHeight(30); // Ferah tablo tasarımı
         tabloAracGorev.getTableHeader().setReorderingAllowed(false);
         tabloAciklamaDinleyicisiEkle(tabloAracGorev, 4);
         
@@ -148,9 +237,13 @@ public class Arayuz extends JFrame {
 
         JPanel pnlAlt = new JPanel(new FlowLayout());
         JButton btnSil = new JButton("Seçili Aracı Sil");
+        btnSil.setBackground(new Color(231, 76, 60)); // Kırmızı
+        btnSil.setForeground(Color.WHITE);
         btnSil.addActionListener(e -> aracSil());
         
         JButton btnServis = new JButton("Servis ve Giderleri Yönet");
+        btnServis.setBackground(new Color(142, 68, 173)); // Mor
+        btnServis.setForeground(Color.WHITE);
         btnServis.addActionListener(e -> servisEkraniniAc());
 
         pnlAlt.add(btnSil);
@@ -171,9 +264,11 @@ public class Arayuz extends JFrame {
 
         // Sol paneldeki kutucuklar alt alta (Etiket üstte, kutu altta)
         JPanel pnlGirdiAlanlari = new JPanel(new GridLayout(12, 1, 0, 5));
+        pnlGirdiAlanlari.setBackground(Color.WHITE);
         
         pnlGirdiAlanlari.add(new JLabel("Araç Plakası:"));
         cbAracPlaka = new JComboBox<>();
+        cbAracPlaka.setEditable(true); // Elle giriş özelliği (Arama/Yazma)
         pnlGirdiAlanlari.add(cbAracPlaka);
 
         pnlGirdiAlanlari.add(new JLabel("Şoför Adı:"));
@@ -192,6 +287,8 @@ public class Arayuz extends JFrame {
         JPanel pnlRaporGirdi = new JPanel(new BorderLayout(5, 0));
         txtRapor = new JTextField();
         JButton btnRaporDetay = new JButton("📝");
+        btnRaporDetay.setBackground(new Color(243, 156, 18)); // Turuncu
+        btnRaporDetay.setForeground(Color.WHITE);
         btnRaporDetay.setToolTipText("Açıklama Oku/Yaz (Pop-up)");
         btnRaporDetay.addActionListener(e -> gosterAciklamaPopup("Görev Açıklaması Yaz/Düzenle", txtRapor.getText(), metin -> txtRapor.setText(metin)));
         pnlRaporGirdi.add(txtRapor, BorderLayout.CENTER);
@@ -199,31 +296,51 @@ public class Arayuz extends JFrame {
         pnlGirdiAlanlari.add(pnlRaporGirdi);
 
         pnlGirdiAlanlari.add(new JLabel("Tarih (GG/AA/YYYY):"));
-        txtTarih = new JTextField();
-        txtTarih.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyReleased(java.awt.event.KeyEvent e) {
-                String text = txtTarih.getText();
-                if (e.getKeyCode() != java.awt.event.KeyEvent.VK_BACK_SPACE) {
-                    if (text.length() == 2 || text.length() == 5) {
-                        txtTarih.setText(text + "/");
-                    }
-                }
+        try {
+            MaskFormatter dateMask = new MaskFormatter("##/##/####");
+            dateMask.setPlaceholderCharacter('_');
+            JFormattedTextField formattedDate = new JFormattedTextField(dateMask);
+            formattedDate.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            txtTarih = formattedDate;
+        } catch (Exception ex) {
+            txtTarih = new JTextField();
+        }
+        pnlGirdiAlanlari.add(txtTarih);
+
+        // Enter tuşu ile kaydetme dinleyicisi (Görev UX)
+        java.awt.event.ActionListener gorevEnterAction = e -> {
+            if (tabloGorev.getSelectedRow() == -1) {
+                gorevKaydet();
+            } else {
+                gorevGuncelle();
             }
-            public void keyTyped(java.awt.event.KeyEvent e) {
-                if (txtTarih.getText().length() >= 10) {
-                    e.consume();
+        };
+        cbAracPlaka.getEditor().getEditorComponent().addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent e) {
+                if(e.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
+                    if (tabloGorev.getSelectedRow() == -1) gorevKaydet(); else gorevGuncelle();
                 }
             }
         });
-        pnlGirdiAlanlari.add(txtTarih);
+        txtSoforAdi.addActionListener(gorevEnterAction);
+        txtIl.addActionListener(gorevEnterAction);
+        txtIlce.addActionListener(gorevEnterAction);
+        txtRapor.addActionListener(gorevEnterAction);
+        txtTarih.addActionListener(gorevEnterAction);
 
         JButton btnTemizle = new JButton("Formu Temizle");
+        btnTemizle.setBackground(new Color(149, 165, 166)); // Gri
+        btnTemizle.setForeground(Color.WHITE);
         btnTemizle.addActionListener(e -> alanlariTemizleGorev());
 
         JButton btnKaydet = new JButton("Yeni Görev Kaydet");
+        btnKaydet.setBackground(new Color(41, 128, 185)); // Mavi
+        btnKaydet.setForeground(Color.WHITE);
         btnKaydet.addActionListener(e -> gorevKaydet());
         
         JButton btnGuncelle = new JButton("Seçileni Güncelle");
+        btnGuncelle.setBackground(new Color(39, 174, 96)); // Yeşil
+        btnGuncelle.setForeground(Color.WHITE);
         btnGuncelle.addActionListener(e -> gorevGuncelle());
 
         JPanel pnlButonlar = new JPanel(new GridLayout(3, 1, 0, 8));
@@ -245,6 +362,7 @@ public class Arayuz extends JFrame {
             public boolean isCellEditable(int row, int column) { return false; }
         };
         tabloGorev = new JTable(modelGorev);
+        tabloGorev.setRowHeight(30); // Ferah tablo tasarımı
         tabloGorev.getTableHeader().setReorderingAllowed(false);
         tabloAciklamaDinleyicisiEkle(tabloGorev, 5);
 
@@ -266,6 +384,8 @@ public class Arayuz extends JFrame {
 
         JPanel pnlAlt = new JPanel(new FlowLayout());
         JButton btnSil = new JButton("Seçili Görevi Sil");
+        btnSil.setBackground(new Color(231, 76, 60)); // Kırmızı
+        btnSil.setForeground(Color.WHITE);
         btnSil.addActionListener(e -> gorevSil());
 
         pnlAlt.add(btnSil);
@@ -338,13 +458,22 @@ public class Arayuz extends JFrame {
             }
         };
         tabloRapor = new JTable(modelRapor);
+        tabloRapor.setRowHeight(30); // Ferah tablo tasarımı
         tabloRapor.getTableHeader().setReorderingAllowed(false);
         tabloAciklamaDinleyicisiEkle(tabloRapor, 7);
-        panelRapor.add(new JScrollPane(tabloRapor), BorderLayout.CENTER);
+        
+        JScrollPane scrollRapor = new JScrollPane(tabloRapor);
+        scrollRapor.setBorder(BorderFactory.createEmptyBorder()); // Sınırları sil
+        panelRapor.add(scrollRapor, BorderLayout.CENTER);
 
         JPanel pnlFiltre = new JPanel(new FlowLayout());
         JButton btnTumu = new JButton("Tüm Görevleri Göster");
+        btnTumu.setBackground(new Color(52, 152, 219)); // Açık Mavi
+        btnTumu.setForeground(Color.WHITE);
+        
         JButton btnHaftalik = new JButton("Haftalık Rapor (Son 7 Gün)");
+        btnHaftalik.setBackground(new Color(230, 126, 34)); // Havuç Rengi
+        btnHaftalik.setForeground(Color.WHITE);
         
         btnTumu.addActionListener(e -> {
             haftalikRaporGoster = false;
@@ -539,27 +668,25 @@ public class Arayuz extends JFrame {
             return;
         }
         
-        int onay = JOptionPane.showConfirmDialog(this, "Seçili aracı silmek istediğinize emin misiniz?" , "Silme Onayı", JOptionPane.YES_NO_OPTION);
-        if (onay == JOptionPane.YES_OPTION) {
-            String plaka = seciliAracPlakasi;
-            String sql = "DELETE FROM Araclar WHERE plaka = ?";
-            try (Connection conn = Veritabani.baglan();
-                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                 
-                Statement pragmaStmt = conn.createStatement();
-                pragmaStmt.execute("PRAGMA foreign_keys = ON;");
-                
-                pstmt.setString(1, plaka);
-                pstmt.executeUpdate();
-                
-                Toast.basarili(this, "Araç silindi.");
-                araclariYukle();
-                gorevleriYukle();
-                raporlariYukle();
-                alanlariTemizleArac();
-            } catch (SQLException e) {
-                JOptionPane.showMessageDialog(this, "Silme hatası: " + e.getMessage(), "Hata", JOptionPane.ERROR_MESSAGE);
-            }
+        // Hızlı akış için onay kutusu kaldırıldı
+        String plaka = seciliAracPlakasi;
+        String sql = "DELETE FROM Araclar WHERE plaka = ?";
+        try (Connection conn = Veritabani.baglan();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             
+            Statement pragmaStmt = conn.createStatement();
+            pragmaStmt.execute("PRAGMA foreign_keys = ON;");
+            
+            pstmt.setString(1, plaka);
+            pstmt.executeUpdate();
+            
+            Toast.basarili(this, "Araç silindi.");
+            araclariYukle();
+            gorevleriYukle();
+            raporlariYukle();
+            alanlariTemizleArac();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Silme hatası: " + e.getMessage(), "Hata", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -691,22 +818,20 @@ public class Arayuz extends JFrame {
         if (row == -1) return;
         
         int id = (int) modelGorev.getValueAt(row, 0);
-        int onay = JOptionPane.showConfirmDialog(this, "Seçili görevi silmek istediğinize emin misiniz?", "Silme Onayı", JOptionPane.YES_NO_OPTION);
-        if (onay == JOptionPane.YES_OPTION) {
-            String sql = "DELETE FROM Gorevler WHERE id = ?";
-            try (Connection conn = Veritabani.baglan();
-                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                 
-                pstmt.setInt(1, id);
-                pstmt.executeUpdate();
-                
-                Toast.basarili(this, "Görev silindi.");
-                gorevleriYukle();
-                raporlariYukle();
-                alanlariTemizleGorev();
-            } catch (SQLException e) {
-                JOptionPane.showMessageDialog(this, "Silme hatası: " + e.getMessage(), "Hata", JOptionPane.ERROR_MESSAGE);
-            }
+        // Hızlı akış için onay kutusu kaldırıldı
+        String sql = "DELETE FROM Gorevler WHERE id = ?";
+        try (Connection conn = Veritabani.baglan();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             
+            pstmt.setInt(1, id);
+            pstmt.executeUpdate();
+            
+            Toast.basarili(this, "Görev silindi.");
+            gorevleriYukle();
+            raporlariYukle();
+            alanlariTemizleGorev();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Silme hatası: " + e.getMessage(), "Hata", JOptionPane.ERROR_MESSAGE);
         }
     }
     private void raporlariYukle() {
@@ -785,5 +910,15 @@ public class Arayuz extends JFrame {
         txtRapor.setText("");
         txtTarih.setText("");
         tabloGorev.clearSelection();
+    }
+
+    public static void setGlobalFont(javax.swing.plaf.FontUIResource f) {
+        java.util.Enumeration<Object> keys = UIManager.getDefaults().keys();
+        while (keys.hasMoreElements()) {
+            Object key = keys.nextElement();
+            Object value = UIManager.get(key);
+            if (value instanceof javax.swing.plaf.FontUIResource)
+                UIManager.put(key, f);
+        }
     }
 }
