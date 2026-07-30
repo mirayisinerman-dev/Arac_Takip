@@ -44,7 +44,7 @@ public class Arayuz extends JFrame {
             System.err.println("FlatLaf JAR bulunamadı. Uygulama standart görünümde açılıyor.");
         }
 
-        setTitle("Araç Takip ve Görevlendirme Sistemi");
+        //setTitle("");
         setSize(1100, 750);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -668,8 +668,18 @@ public class Arayuz extends JFrame {
             return;
         }
         
-        // Hızlı akış için onay kutusu kaldırıldı
         String plaka = seciliAracPlakasi;
+        
+        int onay = JOptionPane.showConfirmDialog(this, 
+                plaka + " plakalı aracı silmek istediğinize emin misiniz?\n(Bu işlem araca ait tüm görevleri ve servis kayıtlarını da silebilir)", 
+                "Silme Onayı", 
+                JOptionPane.YES_NO_OPTION, 
+                JOptionPane.WARNING_MESSAGE);
+                
+        if (onay != JOptionPane.YES_OPTION) {
+            return;
+        }
+        
         String sql = "DELETE FROM Araclar WHERE plaka = ?";
         try (Connection conn = Veritabani.baglan();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
